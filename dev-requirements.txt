@@ -1,0 +1,5 @@
+pytest
+mock
+flake8
+ipython
+coverage
