@@ -9,7 +9,7 @@ __email__ = "jungflor@gmail.com"
 __copyright__ = "Copyright (C) 2015-16, Florian JUNG"
 __license__ = "MIT"
 __version__ = "0.1.0"
-__date__ = "2016-03-31"
+__date__ = "2016-04-04"
 # Created: 2015-06-28 16:34
 
 from paps.crowd import Plugin
@@ -27,9 +27,11 @@ class DummyPlugin(Plugin):
 
     def start(self, blocking=False):
         self.debug("()")
+        super(DummyPlugin, self).start(blocking)
 
     def stop(self):
         self.debug("()")
+        super(DummyPlugin, self).stop()
 
     def on_person_new(self, people):
         self.debug(people)

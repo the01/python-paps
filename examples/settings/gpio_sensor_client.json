@@ -1,5 +1,5 @@
 {
-  "device_id": 4,
+  "device_id": 5,
   "listen_bind_ip": "0.0.0.0",
   "listen_port": 2347,
   "join_retry_number": 1

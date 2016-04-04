@@ -1,0 +1,782 @@
+= Audience Participation Notes
+Florian Jung
+v0.0.3, 2015-02-21
+:doctype: book
+:encoding: utf-8
+:lang: en
+:toc: left
+:chapter-label:
+:pdf-page-size: A4
+:stem: latexmath
+
+Version {revnumber} from {revdate}
+
+:toc:
+
+== About this document
+This document contains the transcription of my personal journal when designing and
+building link:https://github.com/the01/python-paps[paps] and writing my bachelor thesis.
+While this journal entries do give you a good overview of the project's history,
+they are not blog posts. They sometimes just follow my train of thought when working
+on and trying to solve a problem. Which is why they, at times, are not written in
+complete sentences. I have included them here anyway, because they demonstrate what
+kind of difficulties I encountered, how I solved them and what kind of considerations
+went into particular design decisions.
+
+== 2014-12-23
+
+- Force Sensitive Resistor (SEN-09376) - 4.4x4.4 cm +
+  Voltage Divider measure V
+
+- IR/Sonic Sensor
+- Capacitive Sensor
+- Pressure switch
+
+Sound < 10ms latency not noticeable +
+11-20ms monitoring starts unusable, smearing +
+20-30 ms delayed sounds --> actual delay
+
+< 300bpm - 3,3ms +
+200 bpm - 5ms
+
+not much about accurate timing, when to start/stop, but more a holding (several
+times the start precision) and not ending either.
+
+
+== 2014-12-24
+
+*Reaction Time Tests:* Takes some time from the point when the human audience
+member gets the signal to move to the time he actually moves to the time the
+system registers the actual point in time where the senor recognizes activity.
+The latency between signal to human-initiates movement might be cut shorter,
+e.g. with periodic activities ("im Takt") or with a little head start.
+
+The stand up/sit down method of interaction with the system probably is not
+suitable for longer sessions since it is quite a tiring exercise. If several
+up/downs are required the participation will significantly go down.
+Additionally as the people get more tired, their reaction time/time span between
+starting the movement and the triggering of the sensor increases.
+As such the system becomes more inconsistent/imprecise over time. It could
+maybe be used as a sort of training method. +
+This kind of interface automatically excludes people from participation.
+Old people or people with disabilities will have major problems with this
+kind of sensor. It follows that at first a survey/plan is necessary, which
+user base we will want to cover. +
+Sensors in the arm rest are a good option. A button press is a lot less strenuous
+and opens the system up for different kinds of interactions per human. The
+is-occupied-sensor might still be deployed, but maybe only used as a rare/special
+type of event. This doesn't solve the second problem, but it does the first. +
+A possible improvement of the simple up/down design would be to incorporate several
+sensors in one chair. Dependent on the precision and resolution of those
+sensors (pressure plates) this setup could enable a control via shifting your
+eating position, e.g. lean forward/backward or left/right. With that lean people
+with problematic legs could use the system. Additionally this design opens up more
+control options. +
+However there are two big problems with this idea. Primarily it is questionable
+whether the left-right/forward-backward movement is detectable. And even if it
+were possible, such sensors are most likely rather expensive or at least more
+expensive than a simple one that only needs to register seat occupancy. On a
+greater scale the simpler solution will probably prove to be more economical.
+The occupancy-sensor is easier to deploy in different kinds of
+chairs/cushions/upholstery setups.
+
+If the system is intended to be used in much the same way as the McFarlin video
+of harmonics, it won't be as impressive since every button will result in the
+perfect tone to be emitted. It is not a sum of all sub-tones, but at best the
+volume is dependent on the sum of single inputs.
+
+
+== 2014-12-27
+
+_p54-drawing if chair setup/simple interface_
+
+
+== 2014-12-29
+
+=== Audience Participation Protocol (APP - Working title)
+
+_p55-APP header v1__
+
+`>..big-endian`  `<..little-endian`  `!..network (big-endian)`
+
+[source, python]
+----
+  VER = Maj << 4 + Min  # "B" 8 Bit unsigned
+  MsgTyp                # "B" -"-
+  PayLen = len(payload) # "H" 16 bit unsigned
+  Id                    # "I" 32 bit unsigned
+  TimeStamp             # "f" 32 bit float
+  # ..
+----
+
+append payload to pached header
+
+[source, python]
+----
+  def unpack_helper(fmt, data):
+    size = struct.calcsize(fmt)
+    return struct.unpack(fmt, data[:size]), data[size:]
+----
+
+- ZeroConf (Bonjour) +
+-> easier to set up; +
+might need to change because of high traffic in network
+- Mutlicast for discovery (239.255.0.0-239.255.255.255: multicast group) +
+  mac -> bind to 0.0.0.0 +
+  win -> bind to specific local ip
+
+Multicast as way to register clients/servers +
+announce server every 30 secs? +
+do clients register to the server - clients -> server +
+server registers to the clients - server -> clients
+
+clients -> server: server needs to regularly send (30sec) msg; +
+*lots* of packets; only needed in initial stage +
+since clients need to listen anyway -> *clients -> server*
+
+[NOTE]
+Is it possible that the multicast listen socket is the same as the "normal"
+listening socket???
+
+client goes online -> send JOIN-Packet via multicast (send id, ip, maybe more
+infos of the client in the JOIN-Packet)
+
+Server implements CONFIG-Packet to transmit changes in the configuration. +
+Is sent to a newly registered client (upon JOIN-Packet) or to the multicast-group
+(upon config changes at runtime)
+
+client sends STATUS-Packet directly to server if an action occurs on the pi to
+inform the server of the state change.
+
+ID ≈ TCP Sequence Number
+
+In original protocol proposal the timestamp in the ACK-Packet was supposed to be
+the same as the one in the original packet. Put the current timestamp when sending
+the ACK-Packet and include the original stamp in the payload.
+
+What about the Seq in the ACK? Does it need its own sequence number? Probably not,
+since the seq is required for the acknowledge and that only applies to normal packets.
+ACKs do not need retransmitting, the original packet just gets sent again and so
+does the ensuing ACK. +
+Move the ID into the payload. Maybe include an id in the header instead.
+
+Unique id on client from config file. Sends this as proposal to server. Server
+might confirm or change this in the ACK or separate packet.
+
+APP might include method to merge packets together so you only need to use one
+`send()` instead of two. +
+Common fields: Version, TimeStamp +
+need two payloads, lengths, MsgTypes, SeqNum, possibly flags
+
+H0: Version/MsgTyp/PayloadLength +
+H1: TimeStamp +
+no more Id/SeqNum in general header +
+H2: Flags +
+H3: Reserved
+
+*FLAGS* +
+LVB (Least Value Bit)..0 +
+HVB....................32
+
+  0..Continue/Continuous Flag: If present `recv()` should read another packet
+  after this one (inifinit? - UDP max pack size)
+
+  1..Multipart Flag: If present next packet (according to Seq) contains data
+  -> instead payload = payload_packet1 + payload_packet2 +
+  can be used if payload exceeds the max. size for UDP-packet size
+
+Protocol not secure against tampering. If someone gets onto the network he can
+end packets. +
+For example packets with a forged header (the payload length set to high value
+- max number) can block a client/server from receiving valid packets. +
+Possible solution: Message authentication code
+
+Is the IP unique enough to identify the sender? Lets include it for now?
+
+H2: _p59-ID-Flags header part_ +
+ID: 65535 possible participants +
+H1: `datetime.now().timetuple()` -> `time.mktime(x)` -> `ts` +
+`time.time()` -> `ts` +
+`ts` -> `datetime.utcfromtimestamp()`
+
+_p59-Basic APP-Header_
+
+==== JOIN-PACKET (1)
+_p60-SeqNum_
+
+- listen IP? -> can be obtained by `recv()`
+- listen Port -> can be obtained by `recv()`
+- seats
+  * seatCount
+  * seatNumber, seatNumber,.. (seatCount times)
+
+separate by char '\n' -> `split('\n')` or jsonify +
+listenIP/listenPort are received
+
++04 008 0012 00016 0000020+ +
++16 256 4096 65536 1048576+
+
+Payload = ["s1", "s2", "s3"] -> json
+
+==== ACK-Packet (0)
+_p61-SeqNum_
+
+- Seq of original packet
+- timestamp of orig packet
+
+-> via header flag _isAck_ +
+=> every packet is possible
+
+timestamp optional? only really needed when measuring round trips..maybe
+timeouts adjustable +
+-> option when rest of the system stable and fast enough +
+-> include it as a way of statistics +
+-> diagnostic tool - test only one client at a time +
+-> set with FLAG (4 byte less)
+
+No continuous flag or the server would need to hold a buffer for each connected
+client.
+
+But some state info for each connected client is necessary. Append to that struct
+the incomplete packs (with timeout?) and only keep one partial at a time
+-> buffer overflow if many forged packets.
+
+how secure does it have to be against tampering? Can foreign devices be present
+on the network?
+
+Flag: +
+0. Bit: Is Ack Seq. present +
+1. Bit: Rev TimeStamp
+
+_p62-JOIN network_
+
+DeviceId really in header? Yes, because IP more likely to change than ID. +
+Collision handling: First come, first serve. The one that registers an ID first
+can keep it. But what if the IP changes? Include MAC in JOIN?
+
+Problem: Device was once registered, but did not save settings. Upon restart it
+should load info from server. How does it know, it was the same? +
+Simple: Conflicts by hand. Device id of 0 ≈ request to be assigned a device id;
+device id of 1 corresponds to the server
+
+seat nr of 0 means you need to assign one. setup values
+
+client id on server is "<ip>:<port>"
+
+Add every packet sent to an resend `[]` sorted by resend time. If ack for that
+packet comes in -> remove it or add the acked packets sequence number to another
+list and if a packet comes around to being retransmitted, check first whether the
+sequence number of the packet is in the acked seq num list and if, remove them
+from both lists. Otherwise retransmit the package and readd it to the resend list,
+but only if the max resend count is not overstepped.
+
+Client send seat changes (only the changed state in the particular seat). +
+Question is: Wait longer for another seat to change or send multiple packages?
+Comes down to reaction time of set change (occupancy sensor) vs network/server usage.
+
+Server has to have strong CPU and (multiple) fast network cards. Can't distribute
+the work over several machines, since that would add additional lag by
+communication to these sub-servers. Would in theory only work with a load balancer
+distributing the client packets by category. Lookup table sorted by last access
+..if packet comes along of cat1; cat1 should be first in structure to lookup
+current packet
+
+Server is dictator in APP. Clients may request values, but server can accept or
+decline them and send different values instead.
+
+==== CONFIG-PACKET (2)
+change settings of client; payload is a dict with the corresponding key/value
+pairs set (only the ones we want changed)
+
+- device id
+- seat numbers
+- timeouts
+
+Problem with synchronizing the received settings back to the client. Either not
+synced or time delay every time the value is accessed (for reading)
+
+Can use json because it hardly ever gets sent
+-> no need to compress (bit count the message)
+
+
+== 2015-01-01
+
+_p66-APP header_
+
+
+== 2015-01-02
+
+To play multiple notes simultaneously either add the frequencies
+(proportional, so that the amplitude stays the same - `freq1 * 0.2 + feq2 * 0.8`
+-> does not get loader) or use multiple outputs (music playing nodes)
+_p66-SCM sketch_
+S..Pi/Sensor +
+C..ControllUnit +
+M..MusicPlayingNode
+
+
+== 2015-02-24
+
+_p71-pi led monitor sketch_
+
+LED on -> Stand up +
+measure trigger time +
+How long from led on to switch triggered
+
+LED on -> push button +
+measure "normal" reaction time of that person
+
+alternating
+
+_p71-simple controll ui sketch_
+
+*MEETING*
+
+
+== 2015-03-19
+
+*MEETING*
+
+
+== 2015-03-21
+
+API-Network (apin)
+
+into api -> `JOIN(seats_[seat:{}]) -> BOOL` y/n +
+out of api <- `CONFIG(settings:{})` +
+- server wants to change settings on this client
+
+apin needs to manage own network settings -> e.g. own .config() method
+
+`api-n.start()` -> start the (packet) loops +
+`api-n.stop()` -> stop all loops
+
+apin identifies the pi automatically to the server (keeps track of its id).
+Above the apin level the client id is unknown. The server on the other hand has
+to be made aware of the client id (or a translation between apin-ids and external
+ones has to be provided)
+
+A problem is the device id. Since the client can either provide an id
+(e.g. used before) or request a new one, automatic generation requires the apin
+to be aware of all existing clients
+
+<- `apin.newDeviceID(key:"ip:port") -> 16 bit int` +
+- request new unique (unused) device id for a registering client. Has to be > 1
+
+`apin.join()` and `apin.config()` are part of the client api (not needed on server).
+On the other hand `apin.newDevice()`,.. are not needed on the client side. +
+-> Make two apis inheriting from a more general one?
+
+SensorInterface +
+<= SensorClientInterface +
+<= SensorServerInterface
+
+One seat shall be called person to open it up for future changes
+
+=== SensorClientInterface
+on failure: exception +
+-> join(people:[person:{}]) -> people:[person:{}] +
+<- config(setting:{}) +
+-> personUpdate(people:[person:{}]) +
+-> unjoin()
+
+`sci.join()` possibly automatically at start up? +
+`sci.config()` must be registered at instantion of API-Layer +
+`sci.personUpdate()`: one of the people has changed +
+-> update them all +
+`sci.unjoin()`: leave the audience (e.g. at `stop()`) +
+make it possible via `sci.config()` to stop monitoring the sensor (or maybe even
+shutdown the whole client)
+
+=== SensorInterface
+-> start() +
+-> stop()
+
+=== SensorServerInterface
+<- newPerson(person:{}) -> person:{} +
+<- personUpdate(people:[person:{}]) +
+((-> getNeighbours(personId:str) - > people:[person:{}])) +
+TODO: settings
+
+separate device from person! -> ssi manages device-person-translations. +
+-> no need to request new device id (but person id) +
+Person id can be arbitrary (albeit unique) string +
+maintain a device -> person mapping (incoming) +
+maintain a person -> device mapping (outgoing; also if client req. specific
+person id -> determine if used or not) +
+`ssi.personUpdate()`: update info for a person. The question is if a sensor monitors
+multiple people (and sends info on all of them, even when only one has changed)
+-> do multiple personUpdate() or give it a [] +
+for now make it [] (can still do multiple) +
+`ssi.getNeighbours(id)`: which people are on the same device as the person id
+(-> might share settings) +
+might need a si specific settings page +
+`ssi.newPerson()`: check if present and conflicting with already registered people,
+otherwise generate a new id and correct id -> return the person
+
+
+== 2015-03-26
+_p83-Sensor inheritance sketch_
+
+
+== 2015-04-01
+_p83-Sensor Crowd Akteurs sketch_
+
+- list of sensor interfaces
+
+Crowd & Akteur similar/same interface -> interchangeable -> put an Akteur
+directly into crowd without the AkteurManagement through Akteur.
+
+
+== 2015-04-04
+_p84-Network crowd sketch_
+
+* is socket thread safe?
+* each plugin (Akteur) in separate thread?
+
+[network + packet] - Sensor +
+(crowd + plugin) - process
+
+_p84-Sensor Crowd sketch_
+
+`crowd.dispatchToThread()` - not new threads. Each thread is already running in
+its own thread and waiting for new input to come in. [Common base for all plugins
+that call the later implemented/diff-updated or/and updated]
+
+_p84-Crowd Plugin sketch_
+
+Connection between crowd and plugin via socket? +
+one tcp socket (possibly ssh??) +
++ side: +
+* crowd and plugin not on same server +
+* several plugins possible
+
+
+== 2015-04-07
+make seq. in APP permanent, but do a seqNr == 0 is not present (and move seq
+into APPHeader)
+
+APPServer per client remember highest seq per APPMsgTyp -> if ackable, only use
+highest seq. (per MsgTyp remember last seq) +
+also last seq received (know when seq was reset)
+
+APPUpdateMessage: People encoded - MSB always set (delimiter) -> byte-wise
+
+=> most 7 bit per byte used for information
+
++1 0010 1011+ +
++| |------------|+ +
++| | people information+ +
++|-- marker+
+
+got length via payload length +
+only head marker for start
+
+
+== 2015-05-21
+
+[NOTE]
+`.exception()` starts with "Failed .." +
+`raise Exception()` ends with ".. failed"
+
+=== SensorInterface
+-> start +
+-> stop
+
+=== SensorServerInterface => SensorInterface
+<- on_new_person/on_person_new +
+<- on_person_update +
+<- on_person_leave
+
+=== SensorClientInterface => SensorInterface
+<- on_config - to top +
+-> join +
+-> unjoin +
+-> personUpdate +
+-> config - from top to bottom and back +
+on_config and config really both needed?
+
+Put people management into Sensor, loose Crowd and give plugins + plugin management,
+Sensor the same interface? +
+move Crowd into plugin?
+
+*Raspberry Pi*
+0.0-0.8V - Low +
+1.3-3.3V - High
+
+_p88-FSR voltage divider_
+
+[stem]
+++++
+V_{out} = \frac{V_+}{1 + \frac{R_{FSR}}{RM}}
+++++
+
+[stem]
+++++
+(x+1)/y
+++++
+
+latexmath:[R_{FSR} = 300 \Omega] +
+latexmath:[RM = 10k \Omega] +
+-> 0.32mA
+
+
+== 2015-05-26
+Force Sensitive Resistor
+
+_p88-Battery FSR Voltmeter sketch_
+
+FSR seems to be very sensitive - only light touch with thumb sends it already to
+full volts (1.55V). But placing a cushion on it doesn't seem to bother the sensor. +
+Could not really test further as the connections were not particular stable and
+kept getting undone.
+
+Soldered two shortish cables to the contacts of the FSR. Could not attach
+crocodile clips to the sensor - constantly falling off or shorting out.
+
+
+== 2015-05-27
+If pi pin is used to power resistor (FSR) full force would come to 3.3V and
+triggers at around 1.3V. So assuming a linear activation curve, 60% of the range
+the sensor is capable of, would trigger the pi pin input. Which is a bit much because +
+a) it is very sensitive and +
+b) we only want to have near to full pressure triggering it. +
+On top of that it isn't linear, but more of log-curve. So it actually isgoing to
+reach the trigger-voltage a lot sooner - more than 60% activated. +
+-> A voltage divider to lower max. volts. Put it between 1.3 and 1.7/1.8/2.0?
+
+[stem]
+++++
+V_{out} = \frac{V_+}{1 + \frac{R_{FSR}}{R}}
+++++
+
+[stem]
+++++
+R = \frac{V_{out} * R_{FSR}}{V_+ - V_{out}}
+++++
+
+stem:[R_{FSR} = 300 \Omega; V_+ = 3.3V] +
+stem:[V_{out} = 1.3V; \Rightarrow R = 195 \Omega] +
+stem:[V_{out} = 1.8V; \Rightarrow R = 360 \Omega] +
+stem:[V_{out} = 2.0V; \Rightarrow R = 460 \Omega] +
+
+*LARS MEETING*
+
+
+== 2015-05-28
+SensorServer: Don't overwrite people - only provide a translation between client
+people id and server people id
+
+`SensorClient.join()`: verify ids of people
+
+== 2015-06-01
+FSR with R of stem:[10k \Omega] +
+pi should trigger at stem:[\thicksim 15k \Omega]
+
+
+== 2015-06-02
+Person packing scheme
+
+`Person(id=0, sitting=False)` -> 10 +
+`Person(id=0, sitting=True)` -> 11 +
+`P(0,!sit);P(1,sit)` -> 101
+`P(0,!sit);P(1,!sit);P(2,sit);P(3,!sit);P(4,sit);P(5,!sit);P(6,sit)` -> 1001 0101 (0x95)
+`P(0,!sit);P(1,!sit);P(2,sit);P(3,!sit);P(4,sit);P(5,!sit);P(6,sit);P(7,sit)` -> 1 0010 1011 (0x12b)
+
+
+== 2015-06-05
+Let the pi sat-down-trigger (from FSR) have compatible interface to connect it to +
+SensorClient as well as into the plugins directly +
+on_new_person/on_person_update/on_person_leave output; on_config input
+
+*SensorClient/Server-Interface* +
+_p93-Interface_
+
+`on_new_person` `becomes on_person_new`
+
+
+== 2015-06-09
+@2015-06-01: +
+FSR with R stem:[1k \Omega] +
+stem:[R = 1k \Omega; V_+ = 3.3V; V_{out} = 1.3V]
+
+[stem]
+++++
+R_{FSR} = \frac{(V_+ - V_{out}) * R}{V_{out}}
+++++
+
+pi should trigger at stem:[\thicksim 1.5k \Omega]
+
+Setup:
+
+_p94-FSR GPIO voltage divider_
+
+Results in stem:[\thicksim 1.1V] with no touch which mostly tends to trigger the listening
+
+enabling the built in pull down resistor in `GPIO.setup(3, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)`
+seems to fix this
+
+`GPIO.FALLING` seems very precise - only when lifting, but `GPIO.RISING` also gets
+triggered when lifting (not fast enough? a bit sticky?)
+possibly use stem:[1 \mu F] capacitor?
+
+-> easiest: software debouncing and put `GPIO.BOTH` (get rising and falling)
+
+== 2015-06-11
+make `ChangeInterface._on_person_update()` accurate +
+-> for `APP.SensorServer` move people inside here and only forward the actually
+different people. This makes sense because the fact that unchanged people get
+forwarded as well is an implementation specific peculiarity for APP and should not
+influence the whole interface design. +
+But the actual audience management should still take place in the CrowdController.
+(Again the people in `APP.SensorServer` are a necessity out of the protocol design)
+
+Careful when changing the state of people in the CrowdController as all plugin
+share the same objects -> for every changed Person generate a new instance
+(to make the whole thing thread-safe)
+
+CrowdController gets a `.people()` property (with lock)
+
+
+== 2015-06-22
+_p98-Full components sketch_
+
+Special plugin for crowd? +
+integrated as regular plugin or special attachment?
+
+Start off as hack coded into crowd, but separate class (with plugin interface)
+to make it easier to move it elsewhere later (loose coupling)
+
+Use long polling? +
+_p99-Crowd Webserver Browser_
+
+only on_person_new/on_person_leave to WS? -> who is present and not state
+
+=> separation: (display) state info: Plugins +
+only one way (except config information -> both ways)
+
+settings: WS +
+Plugin module supplies own settings template
+
+* html -> one <div> +
+* js -> specific functions: +
+  ** one gets called from outside if changed elsewhere +
+  ** one calls outside if page changes (wrapper around REST call?) +
+
+
+== 2015-06-24
+A websocket client plugin
+[NOTE]
+A regular REST/HTTP client would work as well, but since it might have to support
+on_person_update -> many rapid changes - faster if not necessary to create a
+connection each time, but use an existing one. If one were to use a client only
+for person_new and person_leave then a REST client would be just fine -> either
+detect the absence of person_update or make two plugins. Start with only
+new/leave - easier; really needed and following the separation directive from
+@2015-06-22
+
+connected to a webserver with some sort of db backend. Document store? DB should
+be of key/value kind? Elasticsearch? MongoDB? of JSON objects/dicts
+
+Every dict should have a last_changed field. Should only regard to this level
+(e.g. changes only when a new plugin is added to root) or include every
+sub-object - is max val of all sub-objects. E.g. if a value in plugin1 has changed
+-> update last_changed in "plugin": {.., "last_changed": t} -> also update
+last_changed in root to same time as in plugin1. +
+*Pro:* Only have to look at root to rule out changes +
+*Con:* Need to let changed time bubble up the (multiple) nested objects (with no
+references to parent) +
+Usually a request would ask directly for specific info (e.g. root: what are your
+current plugins -> build menu of available plugins; then when one plugin gets
+selected to be displayed -> ask for information about that plugin) +
+-> no need to use a complicated (bubbling) way of keeping track of change times. +
+Simultaneously the client needs to keep track of change as well. +
+Only a simple REST client between plugin system/crowd and webserver won't work,
+because setting updates have to travel back into the system (except maybe through
+the use of long polling could this be resolved)
+
+
+== 2015-06-28
+Crowd: resource_get +
+Plugin: .get_resource(resource) +
+resource is None -> return list of resources with hash values, else return resource
+(file content) +
+update_resource_list/resource_list: update internal resource list/hashes
+
+-> from plugin to webbrowser
+_p102-Crowd Twisted Browser_
+
+resource_get +
+-> resource_get_list() (see @resource is None) +
+-> resource_get(some)
+
+No paths should be known outside of the plugin as it itself is responsible for
+loading and managing the resource - for now only unique resource id
+
+Flask: start - Load plugin name - load plugin data - plugin resources (if changed)
+-> generate plugin templates (if changed?), with includes to other resources +
+require file attribute for resource? file ending? +
+don't generate uuid -> caching between server runs -> just names relative to resource
+root (resource_path)
+
+easier for now: REQUIREMENT: *unique filenames*!!
+
+
+== 2015-07-01
+Extension/Connection wire
+
+_p103-extension wire_
+
+
+== 2015-07-02
+Possible plugin: musical chairs - changing seats
+
+
+== 2015-07-08
+Because of uncertain update logic in plugins - limit (assume) only one crowd-twisted
+pair -> maybe some checks?
+
+
+== 2015-07-14
+_p106-APPMessage inheritance_
+
+Instead of registering every supported function of th ChangeInterface, restrict
+yourself to just adding an object and try calling the corresponding functions on
+it. It should inherit from CI anyway. Maybe I should remove the abstract class and
+only leave the `NotImplementedError` exception the. That way an object doesn't have
+to implement all functions, but rather only those it chooses to. -> more hard-wiring
+in the python code .. - dependency injection?
+
+
+== 2015-07-17
+Remove [line-through]#ackSequenceNumber and# ackTimestamp from header
+
+add SequenceNumber to APPHeader
+
+bump protocol version to 1.0
+
+Remove APP_ID_REQUEST & APP_ID_SERVER (for backwards compatibility)
+
+_p108-APPHeader_
+
+-> makes all packets acknowledgable/all packets an ack packet
+
+
+== 2015-07-18
+Some server stress tests on a Macbook Air. Tested update packet handling - queue
+growth
+
+
+== 2015-07-21
+*SoundMixPlugin*
+
+* deactivate focus after group creation
+* change drag icon?
+* make whole `li` draggable
+* something to indicate title editable?
+
+
+- play: load - play - channel +
+- set_volume (channel id?, volume) +
+- stop +
+- pause/unpause

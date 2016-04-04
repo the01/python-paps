@@ -138,7 +138,7 @@ class Person(object):
         If a field is set (not none/empty) that is bigger than an unset one.
         Only compares two fields, if they are set in both articles
 
-        compare hierachy (if present and should be compared):
+        compare hierarchy (if present and should be compared):
         - id
         - sitting
 

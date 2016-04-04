@@ -1,0 +1,76 @@
+= Audience Participation
+Florian Jung
+v0.0.4, 2015-04-02
+:doctype: book
+:encoding: utf-8
+:lang: en
+:toc: left
+:sectnums:
+:chapter-label:
+:pdf-page-size: A4
+:stem: latexmath
+
+Version {revnumber} from {revdate}
+
+:toc:
+
+== Project Overview
+
+=== Computing platform
+As the basis for our occupancy sensor we chose a Raspberry Pi. The Raspberry Pi
+Foundation offers several different models ranging in price from the small Pi Zero
+at 5$ up to the Pi 3 at 35$. The big advantage of a Pi over a simple micro-controller
+like an Arduino is the ability to run a full-fledged operating system. These include
+Windows IoT and Raspbian, a Debian-based custom system developed and maintained
+by the Foundation, which we selected. We decided on a Pi 2 because of the builtin
+Ethernet port and the 900 MHz quad-core ARM Cortex-A7 CPU. It supplies more than
+enough computing power to run the sensor software.
+
+=== Sensing
+To detect the actual person sitting in the chair, we settled on a force-sensitive
+resistor. The relative low price [1], the easy and wide range of deploy-ability
+being the deciding factors. Dimensions of about 4,5x4,5 cm make it possible to place
+it on any kind of chair whilst being hardly noticeable. To increase comfort and
+simulate possible real world scenarios, we tried putting the sensor under a cushion.
+Our experiments have shown it to work regardless. This setup has the additional
+benefit of hiding not only the sensor itself, but also the cable-connection to it. +
+Although we were able to acquire such a sensor for about 10$ [], there are even
+cheaper alternatives. [] have shown that such a sensor could be constructed from
+every house hold objects with little effort. + Since the Pi is not equipped with
+digital inputs, we need an additional board to transform the varying resistance
+of the sensor to binary inputs. Here we utilized a little trick. The voltage level
+of the General Purpose Input & Output (GPIO) pins are between 0 and 3.3 V maximum.
+The Pi however recognizes everything upwards of 1.3V as a logic 'HIGH'. The obvious
+solution was to use a voltage divider. We calculated the second resistance to pass
+the 1.3V at around 60% applied force. In our tests this has proven to be remarkable
+reliable. + We further built 2 boards which are able to use 4 and 5 force sensitive
+resistors simultaneously. Since each sensor only requires only one GPIO pin to work,
+a single Pi would be able to support over 15 FSRs. However every sensor needs to
+be connected to the board. Increased cable length also potentially increases power
+consumption and complexity of the cable management. So to not overtax the Pi's limited
+power capabilities, we limited the number of available connections on the board.
+Further we recommend using an uneven number and place the small computer with the
+middle seat. The cables can then be run to either side.
+
+=== People representation
+Each sensor (or rather audience member) is represented as a 'Person'-entity in our
+system. That way if someone were to use a different method of detecting people's
+state, she would only need to translate her readings into such an entity. A Person
+currently has two properties: a for its context unique id and a 'sitting' indicator,
+telling whether a person is standing up or not.
+
+=== Network
+Each Pi is connected to the network via the local area network (LAN). We opted for
+a wired connection to keep transport-latency as low as possible. It should be noted
+however that, if increased latency were acceptable, our software would work over
+wireless LAN as well.
+
+=== Client/Server communication
+Our system implements a star-architecture with one central server. The in the transmission
+involved components are the 'SensorClient' and 'SensorServer'. They communicate with
+eachother using a UDP-based protocol. To reduce the traffic volume, we designed our
+own protocol - the *A* udience *P* articipation *P* rotocol (*APP*). APP supports
+server auto-discovery, sending JSON formatted data, configuration packages as well
+as compressed notification for Person changes (standing up/sitting down). +
+On the server-side we developed a plugin controller ('CrowdController') which
+manages (starts/stops) user provided plugins and propagates the received changes.

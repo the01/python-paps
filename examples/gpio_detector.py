@@ -20,6 +20,7 @@ from flotils.loadable import Loadable
 
 from paps import Person
 
+
 class GPIODetector(Loadable, StartStopable):
     """ Listen on gpios and trigger on_person_* events """
 
@@ -171,7 +172,7 @@ if __name__ == "__main__":
     logging.config.dictConfig(default_logging_config)
     logging.getLogger().setLevel(logging.DEBUG)
     logging.captureWarnings(True)
-    settings_file = "examples/setting/gpio_sensor_client.json"
+    settings_file = "examples/settings/gpio_sensor_client.json"
 
     sc = SensorClient({
         'settings_file': settings_file
@@ -183,7 +184,7 @@ if __name__ == "__main__":
         'changer': gd,
         'gpio_bouncetime': 100,
         'gpio_bouncetime_sleep': 0.1,
-        'gpios': [4, 17]
+        'gpios': [4, 17, 27]
     })
     try:
         gd.start(blocking=False)

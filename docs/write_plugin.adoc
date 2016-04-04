@@ -1,0 +1,92 @@
+= Write a plugin
+
+Writing a plugin for paps is very easy. To demonstrate that we are going to write
+a simple demo plugin link:https://github.com/the01/python-paps/blob/master/examples/plugin-dummy/dummyPlugin.py[DummyPlugin]
+that also comes with paps. +
+First you create a class that inherits from `paps.crowd.Plugin`
+
+[source, python]
+----
+  from paps.crowd import Plugin
+
+  class DummyPlugin(Plugin):
+----
+
+Now you have to implement the methods of the `ChangeInterface`, the new, update and
+leave event. Since this is only a simple plugin, we will just log the received people.
+
+[source, python]
+----
+    def on_person_new(self, people):
+        self.info(u"New people:\n{}".format(people))
+
+    def on_person_update(self, people):
+        self.info(u"Changed people:\n{}".format(people))
+
+    def on_person_leave(self, people):
+        self.info(u"Gone people:\n{}".format(people))
+----
+
+And that is already a simple and fully functional plugin.
+
+If you need some special initialisation code or variables, add an `__init__` +
+(Don't forget the `super` call!)
+
+[source, python]
+----
+    def __init__(self, settings=None):
+      if settings is None:
+        settings = {}
+      super(DummyPlugin, self).__init__(settings)
+      self._new_variable = settings['a_value']
+----
+
+If your plugin requires start up/shutdown code, implement `start`/ `stop` +
+(Don't forget the `super` call!)
+
+[source, python]
+----
+    def start(self, blocking=False):
+      # Some start code
+      super(DummyPlugin, self).start(blocking)
+
+    def stop(self):
+      super(DummyPlugin, self).stop()
+      # Some shutdown code
+----
+
+You can check the state of the plugin via `_is_running` variable.
+
+Everything put together:
+
+[source, python]
+----
+  from paps.crowd import Plugin
+
+  class DummyPlugin(Plugin):
+    def __init__(self, settings=None):
+      if settings is None:
+        settings = {}
+      super(DummyPlugin, self).__init__(settings)
+      self._new_variable = settings['a_value']
+
+    def start(self, blocking=False):
+      # Some start code
+      super(DummyPlugin, self).start(blocking)
+
+    def stop(self):
+      super(DummyPlugin, self).stop()
+      # Some shutdown code
+
+    def on_person_new(self, people):
+        self.info(u"New people:\n{}".format(people))
+
+    def on_person_update(self, people):
+        self.info(u"Changed people:\n{}".format(people))
+
+    def on_person_leave(self, people):
+        self.info(u"Gone people:\n{}".format(people))
+----
+
+If you want more example, have a look at the link:https://github.com/the01/python-paps/tree/master/examples[examples]
+that come with paps.

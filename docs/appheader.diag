@@ -1,0 +1,15 @@
+{
+  colwidth = 32
+  node_height = 50
+
+  0-3: Maj Ver.
+  4-7: Min Ver.
+  8-15: MsgType
+  16-31: Payload length
+  32-63: Timestamp
+  64-79: Device Id
+  80-95: Flags
+  96-127: Sequence Number (Optional)
+  128-159: ACK Sequence Number (Optional)
+  160-191: Payload [colheight = 3]
+}
