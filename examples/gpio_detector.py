@@ -8,8 +8,8 @@ __author__ = "d01"
 __email__ = "jungflor@gmail.com"
 __copyright__ = "Copyright (C) 2015-16, Florian JUNG"
 __license__ = "MIT"
-__version__ = "0.1.0"
-__date__ = "2016-03-31"
+__version__ = "0.1.2"
+__date__ = "2016-04-06"
 # Created: 2015-06-09 15:29
 
 import threading
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     from flotils.logable import default_logging_config
 
     from paps.si.app.sensorClient import SensorClient
-    from paps.si.sensorServerClientAdapter import SensorServerClientAdapter
+    from paps.si.sensorClientAdapter import SensorClientAdapter
 
     logging.config.dictConfig(default_logging_config)
     logging.getLogger().setLevel(logging.DEBUG)
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     sc = SensorClient({
         'settings_file': settings_file
     })
-    gd = SensorServerClientAdapter({
+    gd = SensorClientAdapter({
         'sensor_client': sc
     })
     tc = TestClient({

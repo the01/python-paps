@@ -1,6 +1,6 @@
 = Audience Participation
 Florian Jung
-v0.0.6, 2015-04-04
+v0.0.7, 2015-04-06
 :doctype: book
 :encoding: utf-8
 :lang: en
@@ -11,9 +11,9 @@ v0.0.6, 2015-04-04
 :stem: latexmath
 ifdef::env-github,env-browser[:outfilesuffix: .adoc]
 
-Version {revnumber} from {revdate}
-
 :toc:
+
+
 
 
 == Overview
@@ -29,6 +29,8 @@ For some insights on how this came to be and how the individual parts evolved,
 have a look at the transcription of link:docs/notes{outfilesuffix}[my personal journal notes].
 
 This is the documentation of the core python code.
+
+
 
 === Goals
 The main goals for this project were:
@@ -47,12 +49,15 @@ The main goals for this project were:
   on load-balancers, but it should work with anything from a handful to a hundred.
 
 
+
+
 == Installing
 === Environment
 All the code is writing in python 2, specifically 2.7. I have taken some first steps
 to support python 3 as well, but at this point it probably will not work yet. +
 Tough I have been developing mostly under windows, it has been tested to some degree
 on other platforms (OSX, Raspbian) too.
+
 
 
 === Basic installs
@@ -67,14 +72,17 @@ I recommend working on and running your code in a virtual environment. +
 You can use link:https://virtualenv.pypa.io/en/latest/[virtualenv]
 
 
+
 === Paps install
 ==== PyPI
 If you want to use paps in your own project, it is available from link:https://pypi.python.org/pypi[PyPI]. +
 Simply install it via `pip install paps` or add paps to your requirements file.
 
+
 ==== Manuel
 Get the latest version from github and simply run `python setup.py install`. That
 installs every dependency and you are good to go.
+
 
 
 === Paps development
@@ -83,6 +91,7 @@ method, but change `python setup.py install` to `python setup.py develop`. That
 way any changes you make take immediate effect. I also recommend installing the
 development-dependencies ( `pip install -r dev-requirements.txt`. +
 Finally don't forget to send me a pull request.
+
 
 
 
@@ -101,6 +110,7 @@ are changed, paps itself should continue to work as expected (the sensorServer m
 need a few adjustments). Keep in mind that not every plugin (see later) might be
 as lenient in the type of Person it can work with.
 
+
 ==== Flotils
 Most classes inherit in one way or the other from the link:https://github.com/the01/python-flotils[flotils]
 package. Most notable are the `Logable` and `StartStopable` classes. `Logable` adds
@@ -109,6 +119,7 @@ logging capabilities to an instance (as best demonstrated on the above git page)
 instance. Calling start with True as the parameter is blocking, which means it will
 only return after stop has been executed. Additionally it provides a boolean variable
 indicating its current state (running or not).
+
 
 ==== ChangeInterface
 The other core concept besides a Person is the
@@ -128,7 +139,55 @@ clients, the CrowdController forwarding changes, ..). +
 It is recommended to use/implement whenever Person information needs to be exchanged.
 
 
-=== Network communication
+
+=== Crowd
+Crowd represents the highest level of the paps framework. All lower levels are responsible
+for people recognition (data acquisition), transmission and management. This stage
+is where the audience participation actually takes place. +
+
+
+==== Plugin
+The plugin is the component that accomplishes exactly that. Here you would
+write the code for your base-performance and react to changes/movement in your audience. +
+One possible plugin could implement the logic for musical chairs. You would place
+sensors on every seat and the plugin would start playing music. At some random point
+the music would stop and the last one left standing would be eliminated. You could even
+have a ranking or statistics on who was the fastest to sit down. +
+A plugin can be run since it inherits from StartStopable and receives information
+about the audience by implementing the ChangeInterface. +
+Additionally a `controller` property is present, which is `None` by default, except
+when executed by a CrowdController (see next part). +
+Because it is able to receive change-events, it is possible to directly put a plugin
+on top of a sensor, bypassing network components (see SensorInterface). +
+When writing a plugin one should keep in mind that method invocations might block
+the calling code. For example time spent inside `on_person_update` should be kept
+as short as possible, otherwise the sensor or server might miss updates on the audience's
+state.
+
+
+==== CrowdController
+In practice it is a good idea for classes between different layers to be loosely-coupled.
+An instance wanting to emit change-events should only have to use a ChangeInterface.
+But that means one were only able to use a single plugin at the same time. On the other
+hand it could utilize multiple ChangeInterface-objects, but would also have to
+implement management code for all those instances, which would unnecessarily complicate
+the class. +
+That is where the CrowdController comes in. It has a `plugins` property, where multiple
+plugins can be registered and since CrowdController is a subclass of Plugin, it can
+be used everywhere you would normally use a plugin (or ChangeInterface for that
+matter). Every method call on the controller is forwarded to each plugin, including
+`stop()` and `start()` (which is where the plugin's `controller` property is set). +
+The recommendation about keeping execution time short becomes especially critical
+when using a CrowdController with multiple plugins. It would be possible to dispatch
+all method-forwards to their own thread. Currently the controller only iterates
+through the plugins, sequentially calling the methods. As a result the sensor/server
+gets blocked for the sum of the individual execution durations. Even if your
+plugin returns in 0.2 seconds, using 5 such plugins simultaneously would still result
+in a time lag of a whole second.
+
+
+
+=== Communication
 The first step was to decide how the different sensors would be communicating with
 the server. Ease of installation and avoiding extra components being primary concerns,
 I decided on LAN. (Almost) all Raspberry Pis come equipped with an ethernet port.
@@ -138,6 +197,57 @@ transfer rates and stability. +
 The downside of course being, that now every sensor has to be connected to the
 network via cable. On the other hand one could eliminate the power cable by using
 power over ethernet (PoE).
+
+
+==== SensorInterface (si)
+The sensor interface is responsible for connecting sensors monitoring the actual
+people in the audience to the plugin(s) running the participation related code.
+An implementation should link the two parts of the interface (client/server) together
+(for example over LAN). +
+It is recommended for sensors to propagate their information to an other object
+by use of the ChangeInterface. That way, when testing or using a simple setup, a
+user can connect a plugin or CrowdController  directly to the sensor and does not
+have to go through a network component first. +
+An example of such an sensor has been provided with paps and can be found in the
+link:https://github.com/the01/python-paps/blob/master/examples/gpio_detector.py[example directory].
+This GPIODetector monitors specified GPIO pins on a Raspberry Pi for changes, where
+a set pin (HIGH) represents a sitting and an unset (LOW) pin a standing person. +
+The example further demonstrates how to save/load a configuration from a file with
+the main focus being the device id (see APP in the next chapter) and how to connect
+a sensor to the SensorInterface (SensorClientInterface).
+
+===== SensorClientInterface
+The SensorClientInterface is heavily inspired by the ChangeInterface, but amended
+with remote configuration capabilities. Its `config` method should be implemented
+to allow the server to alter  local settings (potentially including higher layers,
+that use the SensorClientInterface). +
+Though still holding much of the same meaning, the on_person-events have been renamed
+for this interface.
+
+* on_person_new ≈ join
+* on_person_leave ≈ unjoin
+* on_person_update ≈ person_update
+
+This decision was taken deliberately for two reason. The ChangeInterface's methods
+are passive, that is to say, you receive information. The SensorClient's on the
+other hand are active. You tell someone else that something has changed. Secondly
+this was chosen to reflect the different scale. The communication between SensorClient
+and SensorServer is meant to bring the state-information of the whole audience together.
+You are not only detecting a new person, but rather a new person has joined the
+audience.
+
+===== SensorServerInterface
+The SensorClientInterface's counterpart is responsible for translating the incoming
+information back into change-events. It takes a `change` argument in its constructor
+that has to implement the  ChangeInterface and will receive the events.
+
+===== SensorServerClientAdapter
+Since connecting a sensor to a SensorClientInterface implementation is probably
+a very frequent task, paps has such an adapter already built in. Give the SensorClientAdapter
+an instance of a  SensorClientInterface and then plug the adapter (it implements
+the ChangeInterface) into your sensor and it will translate change-events into
+SensorInterface-actions.
+
 
 ==== Audience Participation Protocol (APP)
 Keeping the project goals in mind and wanting to keep the network traffic as low
@@ -150,8 +260,6 @@ of TCP connections (and sockets) open for that single purpose seems unpractical.
 So I opted for a UDP-based protocol.
 
 The protocol uses big-endian encoding.
-
-
 
 ===== APP Header
 image:docs/appheader.svg[]
@@ -199,7 +307,6 @@ an ACK-Packet.
 
 *Payload* (Payload Length number of bytes): Payload content is dependent on the
 type of packet/message being transmitted
-
 
 ===== APP JOIN Message
 Message to join the local audience and comparable to `ChangeInterface.on_person_new`.
@@ -341,7 +448,7 @@ by a marker (`1`) +
 |===
 
 ===== APP DATA Message
-A DATA message enables the protocol to transmit data of some kind as a json encoded
+A DATA message enables the protocol to transmit data as a json encoded
 string.
 
 Requires an ACK-Packet to be sent.
@@ -353,6 +460,7 @@ traffic. +
 The result is a very naïve protocol. It has few or no control, authentication or
 security features built in. It is also very susceptible to tampering (intentional
 and unintentional) and potential denial of service attacks.
+
 
 
 

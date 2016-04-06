@@ -8,8 +8,8 @@ __author__ = "d01"
 __email__ = "jungflor@gmail.com"
 __copyright__ = "Copyright (C) 2015-16, Florian JUNG"
 __license__ = "MIT"
-__version__ = "0.1.1"
-__date__ = "2016-03-31"
+__version__ = "0.2.0"
+__date__ = "2016-04-06"
 # Created: 2015-06-05 11:13
 
 from flotils.runable import StartStopable
@@ -19,14 +19,14 @@ from .sensorInterface import SensorClientInterface
 from paps.changeInterface import ChangeInterface
 
 
-class SensorServerClientAdapter(
+class SensorClientAdapter(
     Logable, ChangeInterface, StartStopable
 ):
     """ Class to connect a plugin directly to a sensor """
 
     def __init__(self, settings=None):
         """
-        Intialize object
+        Initialize object
 
         :param settings: Settings for object (default: None)
         :type settings: dict | None
@@ -34,7 +34,7 @@ class SensorServerClientAdapter(
         """
         if settings is None:
             settings = {}
-        super(SensorServerClientAdapter, self).__init__(settings)
+        super(SensorClientAdapter, self).__init__(settings)
         self.sensor_client = settings['sensor_client']
         if not isinstance(self.sensor_client, SensorClientInterface):
             raise TypeError(
@@ -121,12 +121,10 @@ class SensorServerClientAdapter(
 
     def start(self, blocking=False):
         self.debug("()")
-        # since this class only forwards and translates input from a server
-        # to the client interface, no 'running' is required here
-        super(SensorServerClientAdapter, self).start(blocking=False)
+        super(SensorClientAdapter, self).start(blocking=False)
         self.sensor_client.start(blocking)
 
     def stop(self):
         self.debug("()")
         self.sensor_client.stop()
-        super(SensorServerClientAdapter, self).stop()
+        super(SensorClientAdapter, self).stop()
