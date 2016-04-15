@@ -1,6 +1,6 @@
 = Audience Participation
 Florian Jung
-v0.0.7, 2015-04-06
+v0.1.0, 2015-04-15
 :doctype: book
 :encoding: utf-8
 :lang: en
@@ -17,36 +17,222 @@ ifdef::env-github,env-browser[:outfilesuffix: .adoc]
 
 
 == Overview
-For my bachelor thesis I developed a Raspberry Pi-based system for Audience
-Participation in musical projects. I dubbed the core python software based on that
-title *paps* (*P* i-based *A* udience *P* articipation *S* ystem). However if you
-are not going to use a Raspberry Pi in your project, *paps* once more applies
-(*P* ython-based *A* udience *P* articipation *S* ystem). If you want to go even
-further and only use the interfaces and/or the network protocol for example, *paps*
-still works (*P* articipation  *S* ystem). +
-For a complete overview of the project see link:docs/project{outfilesuffix}[here]. +
-For some insights on how this came to be and how the individual parts evolved,
-have a look at the transcription of link:docs/notes{outfilesuffix}[my personal journal notes].
 
-This is the documentation of the core python code.
+
+
+=== History
+It all started with a single single lecture. The students were tasked with imagining
+ways to include the audience into a live performance. Based on that simple instruction
+sprung forth from the creative mind of my colleague Angelika Fürndraht-Grossschopf
+a very interesting idea: +
+[quote, Angelika Fürndraht-Grossschopf]
+“Why don't we let the people influence the performance by standing up or sitting
+down? Not only do they get to participate in a potentially really fun way, they
+would be exercising at the same time!”
+
+That thought finally grew to become the foundation of this bachelor thesis. She
+partnered with another student who was going to design the software component. +
+A couple weeks after they began their work on a first draft of the thesis proposal,
+I heard of this idea for the first time. I was immediately fascinated by their project.
+It was not only integration of the auditor with a potentially game like scenario,
+but the complexities of recognizing people's movements, transmitting these actions
+to a central point and then reacting to that information what caught my interest
+as a programmer and tinkerer. So it comes as no surprise that when Mrs. Fürndraht-Grossschopf's
+original partner quit the project, I did not hesitate to jump on the opportunity
+to work with her.
+
+
+
+=== Initial project specification
+The project's domain is a theatre like placement. The two major stakeholders, one
+artist and the audience, consisting of several, possibly up to hundreds of members,
+are placed opposite from each other. The listeners' seats are spread over several
+rows facing mostly in the same direction towards the performer. She will prepare
+beforehand a composition, prerecorded and split into separate tracks, one for the
+basic theme and several instruments on their own. +
+The basic theme will play in the background during the whole performance, whilst
+the audience is able to control the influence selected instruments have on the aggregated
+musical experience. The interface to communicate their intentions is a seat-occupancy-sensor.
+By standing up or sitting down can they decide what should happen. +
+During the live performance the artist primarily inhabits the role of conductor.
+She first divides the people into different groups, each linked to a specific instrument.
+The percentage of people standing in such a cluster directly influences how loud
+an instrument plays. For example if 10 people of the guitar group consisting 20
+in total were to stand up, would result in the guitar playing at 50 percent the
+maximum volume. +
+She further needs to explain to the audience how they are able to affect the rendition
+and the role sectioning plays. In the beginning stages she will also direct the
+rising and sitting to accustom the participants to the interaction and the system
+as a whole. +
+Later she might allow the people to freely create their own music by deciding the
+active instruments  by themselves.
+
+
+
+=== Related Works
+This section describes related papers in the field of audience participation focusing
+on practical implications and implementations.
+
+Barkhuus and Jørgensen _[1]_ developed a 'cheering meter' to simplify the voting
+procedure at rap competitions. Because of daily assembly and disassembly they deployed
+their in Java written software on a laptop connected to 4 microphones pointed at
+the audience. The captured sound was then analysed for peak levels of cheering and
+the winner selected based on the highest registered value. Though utilising an entirely
+different form of interaction, they share my sentiment of not using phones (text
+  messages) and rely instead on a more physically involving type (cheering).
+
+Paradiso et. Al _[2]_ examined the possibilities of giveaway wireless motion sensors.
+The sensors transmit “as short pulse of RF energy” to a base station “whenever they
+encounter a dynamic acceleration greater than a predetermined level”. With a very
+small form factor (6.2 cm x 1.6 cm x 1.0 cm) and a weight of 5 grams they can be
+easily held or worn. The low power consumption allows a 3V lithium coin cell battery
+a operating time of 3 to 4 years of normal use (“assuming one event/week”). Though
+the system seems to handle larger crowd of 200 people well, the transmission design
+does not permit differentiation between different devices beyond a crude grouping
+(here 3 groups) which has to be set at hardware level. +
+The proposed responsive and dynamic music generation is in some ways similar to
+our approach of using several tracks simultaneously. They however model continuous
+activity in the form of dancing to five general activity levels, while we associate
+a groups' state (standing/sitting) with instrument (track) volume. +
+Thought the low cost and power consumption make for an intriguing design, the sensor
+is not suited for our purposes. The grouping based on trimmer capacitors is too
+inflexible and coarse. Further, it would have to be determined whether exceeding
+a certain dynamic acceleration level is a sufficient indicator for activity 'standing up'
+and 'sitting down'.
+
+With massMobile Weitzner et al _[3]_ have created “a client-server system for mass
+audience participation in live performances using smartphones”. Special focus was
+put on ease of setup, development of additional use cases and deployment. To enable
+multiple platform support, they utilise a web application executed in a phone's
+browser connected to an API. +
+The framework comes with its goals of “rapid deployment..plug-and-play deployment..
+and simple use” close to my intentions for our project. Nonetheless there exists
+room for improvement in regards to latency. By switching from the TCP based SOAP
+to an UDP alternative could the network traffic be significantly reduced. For reason
+which get explored more in depth below, I dislike the idea of mobile phones being
+the primary form of input.
+
+
+_[1] BARKHUUS, Louise; JØRGENSEN, Tobias. Engaging the crowd: studies of audience-performer interaction. In: CHI'08 extended abstracts on Human factors in computing systems. ACM, 2008._ +
+_[2] PARADISO, Joseph A.; FELDMEIER, Mark. A compact, wireless, self-powered pushbutton controller. In: Ubicomp 2001: Ubiquitous Computing. Springer Berlin Heidelberg, 2001. S. 299-304._ +
+_[3] WEITZNER, Nathan, et al. massMobile-an Audience Participation Framework. In: NIME. 2012. S. 21-23_ +
 
 
 
 === Goals
-The main goals for this project were:
+During the initial research I established fundamental properties the design should
+incorporate:
 
-* Easy: The code should be easy to read and understand (Which was the basis for
-  the decision to use python)
-* Extendibility: Clear and uniform interfaces to mix and extend components as needed
-* Speed: Naturally speed is important, so why python?
-  - The first goal (it being easy was more important than it being fast)
-  - Python is usually fast enough. In most cases it does quite well, especially
-  after you have done some optimizing. Additionally there are several ways to improve
-  speed even more, like using different interpreters (pypy,..) or taking advantage
-  of the close relationship to c (cpython, writing your own c code,...). +
-  Also, realtime processing/reaction would be nice, but is not a requirement.
-* Scalability: The system should not have to handle millions of people, relying
-  on load-balancers, but it should work with anything from a handful to a hundred.
+First and foremost should the project be published under an open source license.
+I have found that very few authors publish anything beyond the paper itself and
+rarely make the accompanying code available. Nonetheless I believe it to be important
+to share more than just the guiding principle behind an idea, but an implementation
+as well. This makes it easier for others to both reproduce the described results
+for themselves and enable them to experiment further with a minimum amount of prior
+work. +
+Easy of use should also be kept in mind. A framework only truly becomes practical
+when it is convenient to set up and deploy. Likewise should the code be kept simple
+and readable. +
+Extendability is priority goal for this project. Although it is developed with a
+specific use case in mind, it should be easy to add other scenarios to maximise
+the benefit for others. This shall be achieved by clear and uniform interfaces allowing
+mixing and extending as needed. If possible the components should not be too specialist
+in their function, potentially freeing them of the context of this framework and
+letting them be used in other projects. +
+Having a fast feedback loop is important. After all it is not very rewarding if
+you take an action and only 1 minute later happens something. The user can not effectively
+asses the connection between her activity and the systems reaction. Furthermore,
+if you have ever watched a video of a person speaking and the audio was offset even
+by for example 50 ms - the difference was noticeable. It stands to reason that delays
+might be as obvious in music, making latency and speed a crucial factor. On the
+other hand is the process of standing up inherently imprecise. You have your inert
+body to put into motion and at the same time are unaware at which point exactly
+the seat sensor triggers. There is no individual feedback which would allow a person
+to attempt to compensate for the delay. +
+For this reasons a compromise is needed: Though design should consider speed, ideally
+creating a realtime system, a margin of error (e.g. maximum of 1 second) shall be
+allowed. This creates a leeway for the implementation and can account for the inaccuracy
+of the interaction itself. +
+The framework  should not have to handle millions of users at a time, relying
+ on technologies like load-balancers, but it should scale from an audience of only
+ a handful up to at least a hundred people. +
+Several diverse reasons lead to the decision against the implementation of a mobile
+phone based system. It is true that smartphones have become a wide spread, almost
+ubiquitous commodity, but relying on them would potentially exclude some users with
+e.g. older phones. Even when owning a brand new, top of the line smartphone, problems
+may arise. A guest may arrive with an empty battery. The app may have a high power
+consumption, leaving the phone completely discharged after the performance, resulting
+in inconveniences and low customer satisfaction. +
+Further the difficulty of supporting multiple mobile operating systems should be
+considered. There exist solutions to cover different platforms with a single code
+base (link:https://cordova.apache.org/[cordova]), but device API access and potential
+performance limitations should be minded.
+Another concern is the deployment method. Since installation should be as easy as
+possible, using the platforms native app stores would be the straight forward and
+preferred way. This however requires being part of a priced development program in
+most cases (99 $ in link:https://developer.apple.com/support/compare-memberships/[Apple's case]),
+which may not be cost-efficient in some use cases. +
+Ideally should the technology to facilitate the interaction be as unintrusive and
+unnoticeable as possible. +
+Another important goal is affordability. To cater to a large and diverse developer
+base including researches, students, etc. a tight budget should be assumed. Complicated
+and expensive hardware should not be necessary to execute the software. Nor should
+the seating state sensing require a pricey sensor.
+
+
+
+=== Technology
+==== Computing platform
+As the basis for the occupancy sensor I chose a Raspberry Pi _[4]_. The Raspberry Pi
+Foundation offers several different models ranging in price from the small Pi Zero
+at 5$ up to the Pi 3 at 35$. The big advantage of a Pi over a simple micro-controller
+like an Arduino is the ability to run a full-fledged operating system. These include
+Windows IoT and Raspbian, a Debian-based custom system, developed and maintained
+by the Foundation, which is what I selected. I decided on a Pi 2 because of the builtin
+ethernet port and the 900 MHz quad-core ARM Cortex-A7 CPU suppling more than
+enough computing power to run the sensor software.
+
+_[4] https://www.raspberrypi.org/help/faqs/, last accessed 2016-04-15_
+
+
+==== Sensing
+To detect the actual person sitting in the chair, I settled on a force-sensitive
+resistor. The relative low price, the easy and wide range of deployability
+being the deciding factors. Dimensions of about 4,5cm x 4,5cm make it possible to place
+it on any kind of chair whilst being hardly noticeable. To increase comfort and
+simulate possible real world scenarios, I tried putting the sensor under a cushion.
+My experiments have shown it to work regardless. This setup has the additional
+benefit of hiding not only the sensor itself, but also the cable connecting to it. +
+Although I was able to acquire such a sensor for about 10€ [5], there are even
+cheaper alternatives. Nassar et al [6] have shown that such a sensor could be constructed from
+everyday household objects with little effort. +
+Since the Pi is not equipped with digital inputs, I needed an additional board to
+transform the varying resistance of the sensor to binary inputs. Here I utilized
+a little trick. The voltage level of the General Purpose Input & Output (GPIO) pins
+are between 0 and 3.3 V maximum. The Pi however recognizes everything upwards of
+1.3V as a logic 'HIGH'. The obvious solution was to use a voltage divider. I calculated
+the second resistance (1000 Ohm) to pass the 1.3V at around 60% applied force. In my tests
+this has proven to be remarkable reliable. +
+I further built 2 boards which are able to use 4 and 5 force sensitive resistors
+simultaneously. Since each sensor only requires only one GPIO pin to work,
+a single Pi would be able to support over 15 FSRs. However every sensor needs to
+be connected to the board. Increased cable length also potentially increases power
+consumption and complexity of the cable management. So to not overtax the Pi's limited
+power capabilities, I limited the number of available connections on the board.
+I recommend using an uneven number and place the small computer with the
+middle seat. The cables can then be run to either side.
+
+_[5] http://www.amazon.de/gp/product/B004R277AS/, last accessed 2016-04-15_
+_[6] NASSAR, Joanna M., et al. Paper Skin Multisensory Platform for Simultaneous Environmental Monitoring. Advanced Materials Technologies, 2016._
+
+
+==== Name
+The name of the core python software is based on the project title *paps*
+(*P* i-based *A* udience *P* articipation *S* ystem). However if you
+are not going to use a Raspberry Pi in your project, *paps* once more applies
+(*P* ython-based *A* udience *P* articipation *S* ystem). If you want to go even
+further and for example use only the interfaces and/or the network protocol, *paps*
+still works (*P* articipation  *S* ystem). +
 
 
 
@@ -453,15 +639,65 @@ string.
 
 Requires an ACK-Packet to be sent.
 
-===== Known problems
-APP was designed with a certain environment and simplicity in mind. A closed off
-network only for APP devices, no malicious clients and no or next to none other
-traffic. +
-The result is a very naïve protocol. It has few or no control, authentication or
-security features built in. It is also very susceptible to tampering (intentional
-and unintentional) and potential denial of service attacks.
+== Conclusion
+The well documented and commented source code allows results in good readability.
+Someone familiar with the general components of paps and/or this document, but new
+to the codebase itself should be able to understand the different parts quickly
+and start developing without any difficulties. This is further aided by the python
+programming language, which, except for a few peculiarities, allows for a straight
+forward way to write code. +
+The server autodiscovery of the audience participation protocol in combination with
+the ability to save runtime settings between executions (such as the device id) as
+demonstrated in GPIODetector make deployment even to a large number of sensors easy.
+Only a single SD card needs to be prepared where the software is set to automatically
+run at boot-time and the seats need to be allocated to the specific groups only once.
+Though the interface was the designed to run in a web browser so that it is possible
+to control the system from a variety of devices, including tablets, the sorting
+remains a tedious errand. It remains a demonstration implementation, showing one
+possible way of approaching this task and will mostly likely prove to work best
+only with few people. Identifying which physical sensor corresponds to a person
+in the interface has to be achieved by manually triggering the sensor. Of course
+this method does not scale well to an audience size of hundreds of people, but since
+it is only required to be done once, it might be considered an acceptable complication. +
+The uniform interfaces, especially `ChangeInterface` makes for a very modular implementation,
+allowing to freely combine different parts of the application (e.g. using a plugin
+with or without a CrowdController, placing a plugin directly on top of a sensor,
+etc.). Additionally the design of the APP enables the developer to easily connect
+to the included `SensorServer` from her own modules and even different programming
+languages. But it was designed with a certain environment and simplicity in mind.
+A closed off network only for APP devices, with no malicious clients and no or
+at least next to none other traffic. The result is a very naïve protocol with
+few or no control, authentication or security features built in. It is also very
+susceptible to tampering (intentional and unintentional) and potential denial of
+service attacks. That is adequate according to our predefined constraints, but should
+be kept in mind when actually deploying a system. +
+After some fine tuning the sensor performed remarkable well, even under more elaborate
+setups like placing a pillow on top of it. The Raspberry Pi was a good decision as
+an operating platform, both in price and in functionality. It provides more than
+enough computing power for this task and should be able to handle plugin execution
+as well. Nevertheless it might not be suited for this task in all situations. In
+tests I was only able to record a frequency of 200 to 240 update packets per second.
+The software itself has however proven to be capable of handling over 400 packets
+per second continuously. During these stress test over several (between 5 and 30)
+minutes I recorded hardly any packet loss, indicating APP's resilience might have
+been overengineering. Moreover this shows the sufficient speed of the system, although
+improvements could be easily achieved by benchmarking the current code, optimising
+slow sections or even implementing components in C. +
+Additionally to its versatility adheres the Pi with a price tag of 35$ to the goal
+of affordability. By connecting multiple sensors to a single computer further reduces
+the per seat price, making the force sensitive resistor at around 10€ the most expensive
+component. However research has shown that it is possible to construct a force sensor
+from everyday household items, likely reducing costs. Since the board to connect the
+Pi and sensors consists mostly of resistors, it should be constructable for little
+money too.
 
-
+With my work I was able to create an application, both in hardware as in software,
+letting audience members influence the execution of prerecorded music and change
+the volume and dominance of specific instruments. I further built a core framework
+for general audience participation, laying a foundation for different interaction
+methods. +
+This system moreover satisfies all set design goals within their constraints, including
+performance, construction cost, modularity and manageability.
 
 
 == How to
