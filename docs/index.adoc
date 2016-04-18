@@ -37,7 +37,7 @@ I heard of this idea for the first time. I was immediately fascinated by their p
 It was not only integration of the auditor with a potentially game like scenario,
 but the complexities of recognizing people's movements, transmitting these actions
 to a central point and then reacting to that information what caught my interest
-as a programmer and tinkerer. So it comes as no surprise that when Mrs. Fürndraht-Grossschopf's
+as a programmer and tinkerer. So it comes as no surprise that when Mrs Fürndraht-Grossschopf's
 original partner quit the project, I did not hesitate to jump on the opportunity
 to work with her.
 
@@ -154,8 +154,8 @@ creating a realtime system, a margin of error (e.g. maximum of 1 second) shall b
 allowed. This creates a leeway for the implementation and can account for the inaccuracy
 of the interaction itself. +
 The framework  should not have to handle millions of users at a time, relying
- on technologies like load-balancers, but it should scale from an audience of only
- a handful up to at least a hundred people. +
+on technologies like load-balancers, but it should scale from an audience of only
+a handful up to at least a hundred people. +
 Several diverse reasons lead to the decision against the implementation of a mobile
 phone based system. It is true that smartphones have become a wide spread, almost
 ubiquitous commodity, but relying on them would potentially exclude some users with
@@ -285,7 +285,7 @@ Finally don't forget to send me a pull request.
 === Core concepts
 ==== Person
 Although paps was developed in the context of a musical project, it is designed
-as an general audience participation framework, not limited to a single use case. +
+as a general audience participation framework, not limited to a single use case. +
 Naturally the core entity used throughout the system is creatively called `Person`.
 It represents an audience member and its current state. +
 At this point a Person only has two properties, an id and a field to indicate whether
@@ -508,7 +508,7 @@ APP requires that all the people have to be announced at join-time. If you want
 to add people at a later point, unjoin first and then re-join with the updated
 people list. +
 The `device id` field of the header may be either set to REQUEST (0) or to a valid
-client id (2-65536). Providing a client id much like with dhcp only serves as an
+client id (2-65536). Providing a client id much like with dhcp only serves as a
 request for that id, the server can choose to assign a different one. The logic
 on how to handle id collisions and to identify clients between runs is left to the
 concrete implementation. Though some possible approaches could involve MAC-addresses
@@ -643,9 +643,9 @@ Requires an ACK-Packet to be sent.
 The well documented and commented source code allows results in good readability.
 Someone familiar with the general components of paps and/or this document, but new
 to the codebase itself should be able to understand the different parts quickly
-and start developing without any difficulties. This is further aided by the python
-programming language, which, except for a few peculiarities, allows for a straight
-forward way to write code. +
+and start developing without any difficulties. The python programming language,
+which except for a few peculiarities allows for a straightforward way to write code,
+further aids this. +
 The server autodiscovery of the audience participation protocol in combination with
 the ability to save runtime settings between executions (such as the device id) as
 demonstrated in GPIODetector make deployment even to a large number of sensors easy.
@@ -657,7 +657,7 @@ remains a tedious errand. It remains a demonstration implementation, showing one
 possible way of approaching this task and will mostly likely prove to work best
 only with few people. Identifying which physical sensor corresponds to a person
 in the interface has to be achieved by manually triggering the sensor. Of course
-this method does not scale well to an audience size of hundreds of people, but since
+this method does not scale well to an audience size of hundreds of people. But since
 it is only required to be done once, it might be considered an acceptable complication. +
 The uniform interfaces, especially `ChangeInterface` makes for a very modular implementation,
 allowing to freely combine different parts of the application (e.g. using a plugin
@@ -688,7 +688,7 @@ of affordability. By connecting multiple sensors to a single computer further re
 the per seat price, making the force sensitive resistor at around 10€ the most expensive
 component. However research has shown that it is possible to construct a force sensor
 from everyday household items, likely reducing costs. Since the board to connect the
-Pi and sensors consists mostly of resistors, it should be constructable for little
+Pi and sensors consists mostly of resistors, it should be constructible for little
 money too.
 
 With my work I was able to create an application, both in hardware as in software,
