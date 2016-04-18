@@ -8,9 +8,9 @@ from __future__ import print_function
 __author__ = "d01 <Florian Jung>"
 __email__ = "jungflor@gmail.com"
 __copyright__ = "Copyright (C) 2015-16, Florian JUNG"
-__license__ = "All rights reserved"
-__version__ = "0.1.2"
-__date__ = "2016-03-29"
+__license__ = "MIT"
+__version__ = "0.1.3"
+__date__ = "2016-04-18"
 # Created: 2015-09-20 05:30
 
 try:
@@ -41,7 +41,14 @@ def get_version():
     raise RuntimeError("Unable to find version string in {}".format(version_file))
 
 
+def get_file(path):
+    with open(path, "r") as f:
+        return f.read()
+
+
 version = get_version()
+readme = get_file("README.rst")
+history = get_file("HISTORY.rst")
 requirements = open("requirements.txt", "r").read().split("\n")
 
 setup(
