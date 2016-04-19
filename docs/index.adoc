@@ -264,9 +264,9 @@ power capabilities, we limited the number of available connections on the board.
 We recommend using an uneven number and place the small computer with the
 middle seat. The cables can then be run to either side.
 
-_[5] http://www.amazon.de/gp/product/B004R277AS/, last accessed 2016-04-15_
-_[6] NASSAR, Joanna M., et al. Paper Skin Multisensory Platform for Simultaneous Environmental Monitoring. Advanced Materials Technologies, 2016._
-_[7] https://www.sparkfun.com/datasheets/Sensors/Pressure/fsrguide.pdf, last accessed 2016-04-18_
+_[5] http://www.amazon.de/gp/product/B004R277AS/, last accessed 2016-04-15_ +
+_[6] NASSAR, Joanna M., et al. Paper Skin Multisensory Platform for Simultaneous Environmental Monitoring. Advanced Materials Technologies, 2016._ +
+_[7] https://www.sparkfun.com/datasheets/Sensors/Pressure/fsrguide.pdf, last accessed 2016-04-18_ +
 
 ==== Name
 The name of the core python software is based on the project title *paps*
