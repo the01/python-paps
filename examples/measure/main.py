@@ -19,6 +19,8 @@ from flotils.runable import StartStopable, SignalStopWrapper
 
 import client
 import server
+import echo_server
+import echo_client
 
 
 class StartWrapper(StartStopable, SignalStopWrapper):
@@ -66,6 +68,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--client", action="store_true")
+    parser.add_argument("--echo", action="store_true")
     parser.add_argument("--number", type=int, default=1)
     parser.add_argument("--host", type=str, default="127.0.0.1")
     parser.add_argument("--port", type=int, default=2346)
@@ -77,12 +80,20 @@ if __name__ == '__main__':
         logging.getLogger().setLevel(logging.DEBUG)
 
     modules = []
-    if args.client:
-        modules, cmd_line = client.create(
-            args.number, args.host, args.port, args.people, args.throttle
-        )
+    if args.echo:
+        if args.client:
+            modules, cmd_line = echo_client.create(
+                args.number, args.host, args.port, args.people, args.throttle
+            )
+        else:
+            modules, cmd_line = echo_server.create(args.host, args.port)
     else:
-        modules, cmd_line = server.create(args.host, args.port)
+        if args.client:
+            modules, cmd_line = client.create(
+                args.number, args.host, args.port, args.people, args.throttle
+            )
+        else:
+            modules, cmd_line = server.create(args.host, args.port)
 
     ctrl = StartWrapper({
         'modules_run': modules
