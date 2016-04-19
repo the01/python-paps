@@ -9,7 +9,7 @@ __author__ = "d01 <Florian Jung>"
 __email__ = "jungflor@gmail.com"
 __copyright__ = "Copyright (C) 2015-16, Florian JUNG"
 __license__ = "MIT"
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 __date__ = "2016-04-18"
 # Created: 2015-09-20 05:30
 
@@ -55,7 +55,7 @@ setup(
     name="paps",
     version=version,
     description="Pi/Python-based Audience Participation System",
-    long_description="",
+    long_description=readme,
     author=__author__,
     author_email=__email__,
     url="https://github.com/the01/python-paps",

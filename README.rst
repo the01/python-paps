@@ -1,21 +1,21 @@
 paps
 ####
 
-.. image:: https://img.shields.io/pypi/v/floscraper.svg
-    :target: https://pypi.python.org/pypi/floscraper
+.. image:: https://img.shields.io/pypi/v/paps.svg
+    :target: https://pypi.python.org/pypi/paps
 
-.. image:: https://img.shields.io/pypi/l/floscraper.svg
-    :target: https://pypi.python.org/pypi/floscraper
+.. image:: https://img.shields.io/pypi/l/paps.svg
+    :target: https://pypi.python.org/pypi/paps
 
-.. image:: https://img.shields.io/pypi/dm/floscraper.svg
-    :target: https://pypi.python.org/pypi/floscraper
+.. image:: https://img.shields.io/pypi/dm/paps.svg
+    :target: https://pypi.python.org/pypi/paps
 
 
 (**P** i-based **A** udience **P** articipation **S** ystem) or
 
 (**P** ython-based **A** udience **P** articipation **S** ystem) or
 
-(**P** articipation **S** ystem)
+(**PA** rtici **P** ation **S** ystem)
 
 A framework to connect audience members (monitored by seat pressure sensors) to
 interact with a central computer running plugins.
