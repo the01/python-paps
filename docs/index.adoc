@@ -137,11 +137,6 @@ which get explored more in depth below, we dislike the idea of mobile phones bei
 the primary form of input.
 
 
-_[1] BARKHUUS, Louise; JØRGENSEN, Tobias. Engaging the crowd: studies of audience-performer interaction. In: CHI'08 extended abstracts on Human factors in computing systems. ACM, 2008._ +
-_[2] PARADISO, Joseph A.; FELDMEIER, Mark. A compact, wireless, self-powered pushbutton controller. In: Ubicomp 2001: Ubiquitous Computing. Springer Berlin Heidelberg, 2001. S. 299-304._ +
-_[3] WEITZNER, Nathan, et al. massMobile-an Audience Participation Framework. In: NIME. 2012. S. 21-23_ +
-
-
 
 === Goals and considerations
 Based on the research questions and the initial research we established fundamental
@@ -216,8 +211,6 @@ by the Foundation, which is what we selected. We decided on a Pi 2 because of th
 ethernet port and the 900 MHz quad-core ARM Cortex-A7 CPU suppling more than
 enough computing power to run the sensor software.
 
-_[4] https://www.raspberrypi.org/help/faqs/, last accessed 2016-04-15_
-
 
 ==== Sensing
 To detect the actual person sitting in the chair, we settled on a force-sensitive
@@ -264,9 +257,6 @@ power capabilities, we limited the number of available connections on the board.
 We recommend using an uneven number and place the small computer with the
 middle seat. The cables can then be run to either side.
 
-_[5] http://www.amazon.de/gp/product/B004R277AS/, last accessed 2016-04-15_ +
-_[6] NASSAR, Joanna M., et al. Paper Skin Multisensory Platform for Simultaneous Environmental Monitoring. Advanced Materials Technologies, 2016._ +
-_[7] https://www.sparkfun.com/datasheets/Sensors/Pressure/fsrguide.pdf, last accessed 2016-04-18_ +
 
 ==== Name
 The name of the core python software is based on the project title *paps*
@@ -675,8 +665,6 @@ by a marker (`1`) +
 |0x012b
 |===
 
-_[8] SAWASHIMA, Hidenari, et al. Characteristics of UDP packet loss: Effect of tcp traffic. In: Proceedings of INET’97: The Seventh Annual Conference of the Internet Society. 1997._
-
 ===== APP DATA Message
 A DATA message enables the protocol to transmit data as a json encoded
 string.
@@ -793,5 +781,46 @@ This system moreover satisfies all set design goals within their constraints, in
 performance, construction cost, modularity and manageability.
 
 
+
+
+== References
+_[1] BARKHUUS, Louise; JØRGENSEN, Tobias. Engaging the crowd: studies of audience-performer interaction. In: CHI'08 extended abstracts on Human factors in computing systems. ACM, 2008._ +
+_[2] PARADISO, Joseph A.; FELDMEIER, Mark. A compact, wireless, self-powered pushbutton controller. In: Ubicomp 2001: Ubiquitous Computing. Springer Berlin Heidelberg, 2001. S. 299-304._ +
+_[3] WEITZNER, Nathan, et al. massMobile-an Audience Participation Framework. In: NIME. 2012. S. 21-23_ +
+_[4] https://www.raspberrypi.org/help/faqs/, last accessed 2016-04-15_ +
+_[5] http://www.amazon.de/gp/product/B004R277AS/, last accessed 2016-04-15_ +
+_[6] NASSAR, Joanna M., et al. Paper Skin Multisensory Platform for Simultaneous Environmental Monitoring. Advanced Materials Technologies, 2016._ +
+_[7] https://www.sparkfun.com/datasheets/Sensors/Pressure/fsrguide.pdf, last accessed 2016-04-18_ +
+_[8] SAWASHIMA, Hidenari, et al. Characteristics of UDP packet loss: Effect of tcp traffic. In: Proceedings of INET’97: The Seventh Annual Conference of the Internet Society. 1997._ +
+
+
+
+
+[appendix]
 == How to
 include::write_plugin.adoc[leveloffset=+2]
+
+
+
+
+[appendix]
+== Source Code
+=== PAPS
+Core framework for audience participation
+
+https://github.com/the01/python-paps
+
+
+
+=== Settings
+PAPS plugin to configure and control other PAPS plugins from a browser
+
+https://github.com/the01/paps-settings
+
+
+
+=== Soundmix
+PAPS plugin implementing the described audience interaction allowing the user to
+create interactive musical performances.
+
+https://github.com/the01/paps-soundmix
