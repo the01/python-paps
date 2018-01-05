@@ -1,5 +1,5 @@
 pytest==3.3.2
-mock
+mock==2.0.0
 flake8
 ipython
 coverage
