@@ -1,5 +1,5 @@
-pytest
-mock
-flake8
-ipython
-coverage
+pytest==3.3.2
+mock==2.0.0
+flake8==3.5.0
+ipython==6.2.1
+coverage==4.4.2
